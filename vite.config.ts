@@ -1,15 +1,13 @@
-import react from '@vitejs/plugin-react'
-import { defineConfig } from 'vite'
-import tailwindcss from '@tailwindcss/vite'
+import react from "@vitejs/plugin-react";
+import { defineConfig } from "vite";
+import tailwindcss from "@tailwindcss/vite";
 import flowbiteReact from "flowbite-react/plugin/vite";
 
-
-// https://vite.dev/config/
 export default defineConfig({
-  plugins: [react(), tailwindcss(), flowbiteReact(),
-  
-  ],
-    optimizeDeps:{
-      include:['react-detect-offline','prop-types']
-    }
-})
+  // GitHub Pages hosts this repository below /SocialMediaApp/.
+  base: process.env.GITHUB_ACTIONS === "true" ? "/SocialMediaApp/" : "/",
+  plugins: [react(), tailwindcss(), flowbiteReact()],
+  optimizeDeps: {
+    include: ["react-detect-offline", "prop-types"],
+  },
+});

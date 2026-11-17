@@ -2,8 +2,9 @@ import axios, { isAxiosError } from 'axios'
 
 export { isAxiosError }
 
-
 const PUBLIC_PATHS = ['/users/signin', '/users/signup']
+const API_BASE_URL =
+  import.meta.env.VITE_API_URL?.trim() || 'https://route-posts.routemisr.com'
 
 function isPublicRequest(url?: string): boolean {
   return !!url && PUBLIC_PATHS.some((path) => url.startsWith(path))
@@ -15,7 +16,7 @@ function isOnAuthPage(): boolean {
 }
 
 export const api = axios.create({
-  baseURL: import.meta.env.VITE_API_URL,
+  baseURL: API_BASE_URL,
 })
 
 api.interceptors.request.use((config) => {
