@@ -9,6 +9,7 @@ import PasswordRules from "../components/ui/PasswordRules";
 import AuthFormLayout from "../components/auth/AuthFormLayout";
 import { registerSchema, type RegisterFormValues } from "../schemas/auth.schema";
 import { showThemedAlert } from "../utils/showThemedAlert";
+import { isAxiosError } from "../api/client";
 
 const registerInputClass = "[&_input]:h-[46px] [&_input]:rounded-[14px] [&_input]:border-[#dce4f1] [&_input]:bg-[#f7f9fc] [&_input]:text-gray-900 [&_input]:placeholder:text-gray-400 dark:[&_input]:border-gray-600 dark:[&_input]:bg-gray-700 dark:[&_input]:text-white dark:[&_input]:placeholder:text-gray-400";
 const passwordInputClass = "[&_input]:h-[46px] [&_input]:rounded-[14px] [&_input]:border-[#dce4f1] [&_input]:bg-[#eaf1ff] [&_input]:text-gray-900 [&_input]:placeholder:text-gray-400 dark:[&_input]:border-gray-600 dark:[&_input]:bg-gray-700 dark:[&_input]:text-white dark:[&_input]:placeholder:text-gray-400";
@@ -70,8 +71,21 @@ export default function Register() {
           nav("/Login");
         }, 2000);
       })
-      .catch((err) => {
-        setServerError(err.response?.data?.message || "Registration failed. Please try again.");
+      .catch((error: unknown) => {
+        const connectionFailed =
+          isAxiosError(error) &&
+          (error.code === "ECONNABORTED" ||
+            error.code === "ETIMEDOUT" ||
+            !error.response);
+        const apiMessage = isAxiosError(error)
+          ? error.response?.data?.message
+          : undefined;
+
+        setServerError(
+          connectionFailed
+            ? "Could not connect to the server. Check your connection and try again."
+            : apiMessage || "Registration failed. Please try again.",
+        );
       })
       .finally(() => {
         setIsSubmitting(false);
@@ -203,7 +217,7 @@ export default function Register() {
           disabled={isSubmitting}
           className="w-full bg-blue-900 hover:bg-blue-800 disabled:opacity-60 dark:bg-blue-600 dark:hover:bg-blue-700"
         >
-          Create account
+          {isSubmitting ? "Creating account..." : "Create account"}
         </Button>
       </form>
     </AuthFormLayout>
