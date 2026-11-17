@@ -17,6 +17,8 @@ function isOnAuthPage(): boolean {
 
 export const api = axios.create({
   baseURL: API_BASE_URL,
+  // Prevent auth forms from staying in a loading state if the API does not respond.
+  timeout: 15000,
 })
 
 api.interceptors.request.use((config) => {
