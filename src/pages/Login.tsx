@@ -9,6 +9,7 @@ import FormField from "../components/ui/FormField";
 import AuthFormLayout from "../components/auth/AuthFormLayout";
 import { loginSchema, type LoginFormValues } from "../schemas/auth.schema";
 import { showThemedAlert } from "../utils/showThemedAlert";
+import { isAxiosError } from "../api/client";
 
 export default function Login() {
   const { setUserData } = useContext(AuthContext);
@@ -47,10 +48,18 @@ export default function Login() {
           nav("/Feed", { replace: true });
         }, 2000);
       })
-      .catch(() => {
-        // Keep API validation details out of the login form. Password strength
-        // rules belong to registration; login only reports failed credentials.
-        setServerError("Incorrect email or password");
+      .catch((error: unknown) => {
+        const connectionFailed =
+          isAxiosError(error) &&
+          (error.code === "ECONNABORTED" ||
+            error.code === "ETIMEDOUT" ||
+            !error.response);
+
+        setServerError(
+          connectionFailed
+            ? "Could not connect to the server. Check your connection and try again."
+            : "Incorrect email or password",
+        );
       })
       .finally(() => {
         setIsSubmitting(false);
@@ -104,7 +113,7 @@ export default function Login() {
           disabled={isSubmitting}
           className="w-full bg-blue-900 hover:bg-blue-800 disabled:opacity-60 dark:bg-blue-600 dark:hover:bg-blue-700"
         >
-          Log In
+          {isSubmitting ? "Signing in..." : "Log In"}
         </Button>
       </form>
     </AuthFormLayout>
