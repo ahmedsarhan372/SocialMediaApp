@@ -11,11 +11,11 @@ export interface ChangePasswordBody {
 }
 
 export function signin(body: SigninBody) {
-  return api.post('/users/signin', body)
+  return api.post('/users/signin', body, { timeout: 15000 })
 }
 
 export function signup<T extends object>(body: T) {
-  return api.post('/users/signup', body)
+  return api.post('/users/signup', body, { timeout: 15000 })
 }
 
 export function getProfile() {
