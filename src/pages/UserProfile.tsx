@@ -1,0 +1,47 @@
+import { useParams } from 'react-router'
+import { useUserProfile } from '../hooks/useUserProfile'
+import { useFollowUser } from '../hooks/useFollowUser'
+import { useUserPosts } from '../hooks/useUserPosts'
+import PostList from '../components/post/PostList'
+import ProfileBanner from '../components/profile/ProfileBanner'
+import PageLoader from '../components/ui/PageLoader'
+import ErrorState from '../components/ui/ErrorState'
+
+export default function UserProfile() {
+  const { id } = useParams()
+  const { user, isFollowing, isLoading, isError, refetch } = useUserProfile(id)
+  const followMutation = useFollowUser(id)
+  const handleFollow = () => followMutation.mutate(id)
+  const isPending = followMutation.isPending
+  const { posts } = useUserPosts(id)
+
+  if (isLoading) {
+    return <PageLoader fullScreen />
+  }
+
+  if (isError || !user) {
+    return (
+      <ErrorState
+        message="Failed to load user profile"
+        onRetry={() => refetch()}
+      />
+    )
+  }
+
+  return (
+    <div className="mx-auto w-full max-w-4xl px-4 py-8 sm:px-6">
+      <title>{user.name}</title>
+
+      <ProfileBanner
+        user={user}
+        isFollowing={isFollowing}
+        isFollowPending={isPending}
+        onFollow={handleFollow}
+      />
+
+      <div className="mt-6 flex flex-col gap-6">
+        <PostList posts={posts} />
+      </div>
+    </div>
+  )
+}

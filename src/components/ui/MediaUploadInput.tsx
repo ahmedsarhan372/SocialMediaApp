@@ -1,0 +1,124 @@
+import { useEffect, useRef, useState } from 'react'
+
+interface MediaUploadInputProps {
+  value: File | null
+  onChange: (file: File | null) => void
+  accept?: string
+  variant?: 'post' | 'comment'
+  mode?: 'trigger' | 'preview' | 'both'
+}
+
+export default function MediaUploadInput({
+  value,
+  onChange,
+  accept = 'image/*',
+  variant = 'post',
+  mode = 'both',
+}: MediaUploadInputProps) {
+  const inputRef = useRef<HTMLInputElement>(null)
+  const [preview, setPreview] = useState<{ file: File; dataUrl: string } | null>(null)
+
+  useEffect(() => {
+    if (!value) {
+      if (inputRef.current) {
+        inputRef.current.value = ''
+      }
+    }
+  }, [value])
+
+  const handleFileChange = (file: File | null) => {
+    onChange(file)
+    if (!file) {
+      setPreview(null)
+      return
+    }
+
+    const reader = new FileReader()
+    reader.onload = () => {
+      if (typeof reader.result === 'string') {
+        setPreview({ file, dataUrl: reader.result })
+      }
+    }
+    reader.readAsDataURL(file)
+  }
+
+  const previewUrl = value && preview?.file === value ? preview.dataUrl : null
+
+  const handleRemove = () => {
+    if (inputRef.current) {
+      inputRef.current.value = ''
+    }
+    onChange(null)
+  }
+
+  const previewElement =
+    value && previewUrl ? (
+      variant === 'comment' ? (
+        <div className="relative mt-2 w-32">
+          <img src={previewUrl} alt="preview" className="h-24 w-32 rounded-lg object-cover" />
+          <button
+            type="button"
+            onClick={handleRemove}
+            aria-label="Remove attached image"
+            className="absolute top-1 right-1 h-7 w-7 rounded-full bg-gray-900/60 text-xs text-white"
+          >
+            <i aria-hidden="true" className="fa-solid fa-xmark"></i>
+          </button>
+        </div>
+      ) : (
+        <div className="relative">
+          <img src={previewUrl} alt="preview" className="max-h-72 w-full rounded-xl object-cover" />
+          <button
+            type="button"
+            onClick={handleRemove}
+            aria-label="Remove attached image"
+            className="absolute top-2 right-2 h-8 w-8 rounded-full bg-gray-900/60 text-white"
+          >
+            <i aria-hidden="true" className="fa-solid fa-xmark"></i>
+          </button>
+        </div>
+      )
+    ) : null
+
+  const triggerElement =
+    variant === 'comment' ? (
+      <label
+        aria-label="Attach image"
+        className="flex h-9 w-9 cursor-pointer items-center justify-center rounded-full hover:bg-gray-200 dark:text-gray-400 dark:hover:bg-gray-700"
+      >
+        <i aria-hidden="true" className="fa-regular fa-image text-lg"></i>
+        <input
+          ref={inputRef}
+          type="file"
+          accept={accept}
+          hidden
+          onChange={(e) => handleFileChange(e.target.files?.[0] ?? null)}
+        />
+      </label>
+    ) : (
+      <label
+        aria-label="Attach photo or video"
+        className="flex cursor-pointer items-center gap-2 rounded-lg px-3 py-2 text-gray-600 hover:bg-gray-100 dark:text-gray-300 dark:hover:bg-gray-700"
+      >
+        <i aria-hidden="true" className="fa-regular fa-image text-lg text-green-600"></i>
+        <span className="hidden md:inline">Photo/video</span>
+        <input
+          ref={inputRef}
+          type="file"
+          accept={accept}
+          hidden
+          onChange={(e) => handleFileChange(e.target.files?.[0] ?? null)}
+        />
+      </label>
+    )
+
+  if (mode === 'preview') return previewElement
+  if (mode === 'trigger') return triggerElement
+
+  return (
+    <>
+      {previewElement}
+      {triggerElement}
+    </>
+  )
+}
